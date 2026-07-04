@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* PSX Co-Pilot — "night desk" terminal aesthetic.
+   Deep green-black ground, phosphor greens for gains, ember red for losses,
+   brass accent. Fraunces for display, Spline Sans Mono for numbers. */
+@theme {
+  --color-ground: #0b1210;
+  --color-panel: #101a17;
+  --color-panel-2: #15221e;
+  --color-line: #1f312b;
+  --color-ink: #d7e4de;
+  --color-ink-dim: #7d938b;
+  --color-gain: #4ade80;
+  --color-loss: #f87171;
+  --color-brass: #d4a95a;
+  --color-brass-dim: #8a744a;
+  --font-display: "Fraunces", serif;
+  --font-mono: "Spline Sans Mono", monospace;
+}
+
+html {
+  background: var(--color-ground);
+}
+
+body {
+  font-family: var(--font-mono);
+  color: var(--color-ink);
+}
+
+/* subtle scanline atmosphere */
+.scanlines::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.12) 4px
+  );
+  z-index: 50;
+}

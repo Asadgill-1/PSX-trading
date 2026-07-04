@@ -5,6 +5,16 @@ Format: date — who — what changed — what's next — blockers.
 
 ---
 
+## 2026-07-05 — Milestones 6-9 done (agents, approval+alerts, memory, dashboard)
+- M6 agents: Scout/Devil/Judge fresh-context JSON calls, mock mode, parallel debates, hallucination guard, dedup, sizing arithmetic under cap.
+- M7 approval gate API (decisions audit rows, deferred fills), Telegram alerts (stdlib, degrade-to-log), risk settings UI endpoints with confirm+bounds.
+- M8 memory: journals, daily metrics (hit rate/avg win-loss/drawdown), bounded strategy-weight nudges, lessons file store with create/update/delete validation, nightly reflection wired. Fixed UTC-vs-Karachi date filter bug (khi_day_utc_range).
+- M9 dashboard: React+Vite+Tailwind4, night-desk terminal aesthetic (Fraunces + Spline Sans Mono), login, stat strip, proposal cards with full debate + one-tap approve/reject, positions table, learning metrics, safety-layer panel with circuit-clear.
+- VERIFIED in browser: login → real PSX data (GCIL/SGPL proposals) → approve while market closed → correct plain-English deferral, DB shows approved + decision row. 88 tests green.
+- backend/.env created with TEMP password `changeme-owner-123` — owner must change via `python -m app.cli set-password`.
+- Next: M10 strategy modules research, M11 Docker+README, M12 E2E demo.
+- Blockers: none.
+
 ## 2026-07-04 — Milestones 4+5 done (risk layer + paper engine)
 - M4 risk layer (app/risk/engine.py): position/sector/exposure caps, stop-loss attach, sticky day halt with day-start baseline, circuit breaker (manual trip + stale-data auto-trip), plain-English rejections, risk_events audit. 25 tests.
 - Fresh-context review (cavecrew-reviewer) found 2 real bugs, both fixed + regression-tested: (1) existing holdings were valued at avg_cost while portfolio at market — 5% cap leaked on run-up positions; (2) record_day_start never called — wired into scan job.
