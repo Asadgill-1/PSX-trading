@@ -2,17 +2,26 @@
 
 Source of truth for data shape. Update when schema changes.
 
-## Data sources (investigation pending — first build task)
-| Source | What | Status |
-|--------|------|--------|
-| sarmaaya.pk | Live prices, fundamentals, technicals, announcements, screeners. PSX-authorized redistributor. | INVESTIGATE: public endpoints, robots.txt, ToS, scrape feasibility |
-| dps.psx.com.pk | Official PSX data portal: prices, indices, company info | INVESTIGATE: endpoints, delay, ToS |
-| PSX Data Services | Licensed real-time feeds | Document license cost/contact if real-time needed |
+## Data sources — DECIDED 2026-07-04 (probed live, evidence in session tool output)
 
-Decision + trade-offs recorded here after investigation. All ingestion behind adapter
-interface (`backend/app/data/base.py`) so source swaps without touching consumers.
-Respect robots.txt + ToS. If licensed feed required → stub adapter + document exactly
-what license to buy and from whom.
+**PRIMARY: dps.psx.com.pk (official PSX data portal).** Free, public, no auth, no robots.txt (404 = no restrictions declared). JSON where it matters:
+
+| Endpoint | Returns | Verified |
+|----------|---------|----------|
+| `GET /market-watch` | HTML table, ALL symbols: sector, LDCP, open/high/low/current, volume, buy/sell orders (~478KB) | ✅ 200 |
+| `GET /timeseries/int/{SYMBOL}` | JSON intraday ticks `[[unix_ts, price, volume], ...]` | ✅ 200, real data |
+| `GET /timeseries/int/KSE100` | JSON index intraday (KMI30 same pattern — verify) | ✅ 200 |
+| `GET /timeseries/eod/{SYMBOL}` | JSON daily history `[[unix_ts, close, volume, open], ...]` | ✅ 200 |
+| `GET /company/{SYMBOL}` | HTML: EPS, P/E, Market Cap, Free Float + profile | ✅ 200 |
+| `GET /announcements/companies` | HTML announcements list | ✅ 200 |
+
+Trade-offs: official + free + stable URLs + JSON core; data delayed (portal standard, fine for positional style); fundamentals partial on company page (no dividend yield/book value there — supplement from financial results pages or secondary adapter).
+
+**SECONDARY (adapter stub): sarmaaya.pk.** robots.txt allows all (one enterprise path disallowed). Next.js App Router — no `__NEXT_DATA__` JSON, RSC payload parsing = brittle. Richer fundamentals + screeners exist but harder to extract. Build adapter only if PSX portal fundamentals prove insufficient.
+
+**Real-time licensed feed:** not needed for positional days–weeks style. If ever needed: PSX Data Services (psx.com.pk → Data Services), license sold by PSX directly.
+
+All ingestion behind adapter interface (`backend/app/data/base.py`) so source swaps without touching consumers. Polite scraping: throttle requests, cache, identify via User-Agent, back off on errors.
 
 ## Needed data
 - Prices: symbol, OHLC, last, volume, change %, timestamp
