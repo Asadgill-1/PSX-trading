@@ -13,6 +13,7 @@ Everything you need to finish the project is in this folder. Do not guess — re
 6. `docs/06_DECISIONS.md` — locked decisions + why (do not re-litigate)
 7. `docs/07_GLOSSARY.md` — domain terms (PSX / trading)
 8. `docs/08_PROGRESS_LOG.md` — running log; read last entry to know where prev agent stopped
+9. `docs/09_SKILLS.md` — which Claude skills/modes to use for coding + UI/UX
 
 ## Rules for whoever works here
 
