@@ -5,7 +5,7 @@ Regular hours (verify against PSX notices — Ramadan timings differ):
   Fri:     09:17 - 12:00, 14:32 - 16:30
 ponytail: no holiday calendar yet — add PSX holiday list when a scan fires on Eid.
 """
-from datetime import datetime, time
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 KHI = ZoneInfo("Asia/Karachi")
@@ -33,3 +33,12 @@ def is_market_open(at: datetime | None = None) -> bool:
 def trading_date(at: datetime | None = None) -> str:
     """YYYY-MM-DD in Karachi time — key for metrics_daily and day-halt scope."""
     return (at or now_khi()).astimezone(KHI).date().isoformat()
+
+
+def khi_day_utc_range(date_str: str) -> tuple[str, str]:
+    """UTC ISO bounds [start, end) of a Karachi calendar day. DB timestamps are
+    UTC; date filters must convert, or queries near midnight PKT miss rows."""
+    d = date.fromisoformat(date_str)
+    start = datetime(d.year, d.month, d.day, tzinfo=KHI).astimezone(timezone.utc)
+    end = start + timedelta(days=1)
+    return (start.isoformat(timespec="seconds"), end.isoformat(timespec="seconds"))

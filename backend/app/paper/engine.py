@@ -235,8 +235,10 @@ def realized_pnl(conn: sqlite3.Connection, date: str | None = None) -> float:
         " ELSE -(qty*price + commission) END), 0) AS flow FROM trades"
     args: tuple = ()
     if date:
-        q += " WHERE executed_at LIKE ?"
-        args = (date + "%",)
+        from ..market_hours import khi_day_utc_range
+        lo, hi = khi_day_utc_range(date)
+        q += " WHERE executed_at >= ? AND executed_at < ?"
+        args = (lo, hi)
     return conn.execute(q, args).fetchone()["flow"]
 
 

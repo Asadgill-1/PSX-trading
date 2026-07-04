@@ -65,9 +65,10 @@ def _execute_approved_waiting(conn) -> None:
 def reflect_job() -> None:
     conn = db.connect()
     try:
+        from .memory import reflect
+        reflect.run_nightly(conn)
         if on_reflect:
             on_reflect(conn)
-            log.info("nightly reflection done")
     except Exception:
         log.exception("reflection job failed")
     finally:
