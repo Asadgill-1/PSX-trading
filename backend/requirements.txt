@@ -1,0 +1,9 @@
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+scrapling[fetchers]==0.4.*
+apscheduler==3.10.*
+PyJWT==2.10.*
+python-dotenv==1.0.*
+anthropic==0.69.*
+pytest==8.*
+httpx==0.28.*
