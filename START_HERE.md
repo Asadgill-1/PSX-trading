@@ -5,6 +5,7 @@ Everything you need to finish the project is in this folder. Do not guess — re
 
 ## Reading order (do in sequence)
 
+0. `docs/00_SPEC.md` — the owner's original specification, verbatim. THE CONTRACT.
 1. `docs/01_OVERVIEW.md` — what this project is, goal, current state
 2. `docs/02_ARCHITECTURE.md` — how it is built, components, how they connect
 3. `docs/03_DATA.md` — data sources, schemas, formats, where data lives
@@ -24,9 +25,17 @@ Everything you need to finish the project is in this folder. Do not guess — re
 - Finished/added a task? Update `docs/05_ROADMAP.md`.
 - Keep docs true. Stale doc worse than no doc.
 
+## Hard rules (non-negotiable, from owner spec)
+
+- NO trade — paper or real — ever executes without owner's explicit approval of that specific trade.
+- Risk layer is deterministic code; agents can NEVER modify, bypass, or reach it.
+- All owner-facing text: plain beginner English. Owner is not a trader.
+- Phase 2 (real-broker execution) is NOT built until owner explicitly asks.
+- Do not re-litigate decisions in `docs/06_DECISIONS.md` without owner sign-off.
+
 ## Fast facts
 
-- Project name: PSX Stock Trading
-- Owner: <fill>
-- Repo / location: <fill>
-- Status: SCAFFOLD — project not yet described in docs. Owner fills next.
+- Project name: PSX Co-Pilot (folder: PSX Stock Trading)
+- Owner: single user, beginner trader, wadialdagaya@gmail.com
+- Repo: https://github.com/Asadgill-1/PSX-trading
+- Status: docs complete, implementation in progress — see roadmap + last log entry.
