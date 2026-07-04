@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .. import db
-from . import llm, prompts
+from . import llm, prompts, strategies
 
 log = logging.getLogger("agents.pipeline")
 
@@ -87,9 +87,11 @@ def run_scan(conn: sqlite3.Connection) -> list[int]:
         log.info("no candidates in data")
         return []
 
+    strategies.seed_weights(conn)
     lessons = read_lessons()
     weights = strategy_weights(conn)
     scout_input = json.dumps({
+        "strategy_menu": strategies.prompt_block(),
         "lessons_from_past_trades": lessons,
         "strategy_weights (higher = has worked better for us)": weights,
         "market_data": candidates,

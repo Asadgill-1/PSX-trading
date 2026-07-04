@@ -20,7 +20,8 @@ def respond(role: str, user_prompt: str) -> dict | list:
         return [{
             "symbol": s,
             "action": "buy",
-            "strategy": _pick(s, ["volume-momentum", "value-pe", "sector-follow"]),
+            "strategy": _pick(s, ["volume-momentum", "value-pe", "sector-rotation",
+                                  "heavyweight-follow"]),
             "thesis": f"[MOCK] {s} is trading with unusually high activity today, which often "
                       "means big investors are building a position. The price is holding firm "
                       "while the volume (number of shares changing hands) is well above normal.",

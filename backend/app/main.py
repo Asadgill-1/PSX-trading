@@ -78,3 +78,15 @@ def me():
 from .api import router as api_router  # noqa: E402
 
 app.include_router(api_router)
+
+# Prod: serve the built dashboard from the same origin (no CORS, one port).
+# Looks in backend/static (Docker) then ../frontend/dist (bare local build).
+from pathlib import Path  # noqa: E402
+
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+for _static in (Path(__file__).resolve().parent.parent / "static",
+                Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"):
+    if (_static / "index.html").exists():
+        app.mount("/", StaticFiles(directory=_static, html=True), name="dashboard")
+        break

@@ -135,6 +135,18 @@ def test_expired_proposals_marked(conn):
 
 # ---------- lessons ----------
 
+def test_strategy_modules_seeded_and_in_prompt(conn):
+    from app.agents import strategies
+    strategies.seed_weights(conn)
+    rows = {r["strategy"]: r["weight"] for r in conn.execute("SELECT * FROM strategy_weights")}
+    assert set(rows) == {s["name"] for s in strategies.STRATEGIES}
+    assert all(w == 1.0 for w in rows.values())
+    strategies.seed_weights(conn)              # idempotent
+    assert conn.execute("SELECT COUNT(*) c FROM strategy_weights").fetchone()["c"] == len(rows)
+    block = strategies.prompt_block()
+    assert "dividend-capture" in block and "sector-rotation" in block
+
+
 def test_read_lessons_missing_dir_ok(tmp_path, monkeypatch):
     monkeypatch.setattr(pipeline, "LESSONS_DIR", tmp_path / "nope")
     assert "No lessons" in pipeline.read_lessons()

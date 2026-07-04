@@ -15,15 +15,23 @@ Status keys: TODO | DOING | DONE | BLOCKED
 | 7 | Approval gate + Telegram + in-app alerts | DONE | proposal → alert → approve → paper trade with stop attached |
 | 8 | Memory: lessons store, journal, nightly reflection, strategy weights | DONE | reflection run writes lesson + adjusts weight |
 | 9 | Dashboard (React+Vite+Tailwind, frontend-design skill) | DONE | all 7 dashboard elements visible with real data |
-| 10 | Strategy modules (researched, cited) | TODO | each module named + source cited in code |
+| 10 | Strategy modules (researched, cited) | DONE | each module named + source cited in code |
 | 11 | Dockerfile + compose + README + deploy docs | TODO | compose builds; README complete |
 | 12 | End-to-end demo vs Definition of done | TODO | full walkthrough, evidence per claim |
 
 ## Phase 2 (NOT built until owner asks)
-- Real-broker execution adapter. Research PK broker APIs during Phase 1, document findings only.
+- Real-broker execution adapter only.
+- Broker API research (2026-07-05): NO Pakistani broker exposes a public retail
+  trading API. All retail apps (KTrade/KASB, AKD Trade, etc.) route through PSX's
+  KiTS internet-trading backbone; access is app-only. Options when Phase 2 comes:
+  (a) ask a broker for institutional/OMS access directly (AKD, KASB largest),
+  (b) semi-automatic mode: system prepares the order, owner taps it into the
+  broker app (recommended starting point — keeps the human in the loop anyway).
+  Sources: bsl.com.pk broker rankings, valuestock.pk PSX brokers list,
+  kasb.com (KTrade), akdsl.com.
 
 ## Next up
-Milestone 10: strategy modules (researched, cited).
+Milestone 11: Docker + README + deploy docs.
 
 ## Backlog / nice-to-have
 - VPS migration guide execution
