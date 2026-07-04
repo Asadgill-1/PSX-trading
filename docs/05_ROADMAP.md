@@ -9,8 +9,8 @@ Status keys: TODO | DOING | DONE | BLOCKED
 | 1 | Data source investigation (sarmaaya, dps.psx) + decision written to 03_DATA | DONE | fetched real quote in tool output |
 | 2 | Backend scaffold: FastAPI, SQLite schema, config, logging, auth | DONE | server starts, login works, pytest green |
 | 3 | Market data layer: adapters + scheduler + retries | DONE | live PSX prices in DB, stale-data detection works |
-| 4 | Risk layer (pure, deterministic) + THOROUGH tests | TODO | pytest: limits, stop-loss, day halt, circuit breaker all covered; fresh-context review vs spec |
-| 5 | Paper trading engine (PSX mechanics) + THOROUGH tests | TODO | pytest: fills, lots, hours, T+2, commission, CGT, P&L; fresh-context review |
+| 4 | Risk layer (pure, deterministic) + THOROUGH tests | DONE | pytest: limits, stop-loss, day halt, circuit breaker all covered; fresh-context review vs spec |
+| 5 | Paper trading engine (PSX mechanics) + THOROUGH tests | DONE | pytest: fills, lots, hours, T+2, commission, CGT, P&L; fresh-context review |
 | 6 | Agent pipeline: mock mode + real Anthropic adapter, parallel sector scans | TODO | full Scout→Devil→Judge run produces valid proposal in mock mode |
 | 7 | Approval gate + Telegram + in-app alerts | TODO | proposal → alert → approve → paper trade with stop attached |
 | 8 | Memory: lessons store, journal, nightly reflection, strategy weights | TODO | reflection run writes lesson + adjusts weight |
@@ -23,7 +23,7 @@ Status keys: TODO | DOING | DONE | BLOCKED
 - Real-broker execution adapter. Research PK broker APIs during Phase 1, document findings only.
 
 ## Next up
-Milestone 4: risk layer + thorough tests.
+Milestone 6: agent pipeline (mock + Anthropic adapter).
 
 ## Backlog / nice-to-have
 - VPS migration guide execution

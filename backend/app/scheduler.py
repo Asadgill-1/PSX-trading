@@ -11,6 +11,8 @@ from apscheduler.triggers.cron import CronTrigger
 from . import db
 from .data import ingest
 from .market_hours import KHI, is_market_open
+from .paper import engine as paper
+from .risk import engine as risk
 
 log = logging.getLogger("scheduler")
 
@@ -26,10 +28,18 @@ def scan_job() -> None:
     try:
         rows = ingest.ingest_market_watch(conn)
         log.info("scan tick", extra={"ctx": {"quotes": rows}})
+
+        # risk layer housekeeping — order matters: baseline before halt check
+        risk.record_day_start(conn)
+        risk.check_data_freshness(conn)
+        paper.settle_due(conn)           # release T+2 sell proceeds
+        paper.check_stops(conn)          # auto-sell breached stop-losses
+        risk.day_halted(conn)            # evaluates + sticks the daily cutoff
+
         if on_scan:
             on_scan(conn)
     except Exception:
-        log.exception("scan job failed")  # circuit breaker (M4) watches quote staleness
+        log.exception("scan job failed")  # stale data then trips the circuit breaker
     finally:
         conn.close()
 
