@@ -36,17 +36,30 @@ def scan_job() -> None:
         paper.check_stops(conn)          # auto-sell breached stop-losses
         risk.day_halted(conn)            # evaluates + sticks the daily cutoff
 
+        _execute_approved_waiting(conn)
+
         # agents propose only when nothing is frozen — proposals made during a
         # halt would just be rejected at execution anyway
         if not risk.circuit_tripped(conn) and not risk.day_halted(conn):
             from .agents import pipeline
             created = pipeline.run_scan(conn)
             if created and on_scan:
-                on_scan(conn, created)   # M7 alert hook
+                on_scan(conn, created)   # alert hook
     except Exception:
         log.exception("scan job failed")  # stale data then trips the circuit breaker
     finally:
         conn.close()
+
+
+def _execute_approved_waiting(conn) -> None:
+    """Fill proposals the owner approved while the market was closed."""
+    for row in conn.execute("SELECT id FROM proposals WHERE status='approved'").fetchall():
+        try:
+            paper.execute_approved(conn, row["id"])
+            log.info("deferred approval executed", extra={"ctx": {"proposal": row["id"]}})
+        except paper.ExecutionError as e:
+            log.info("deferred approval still waiting", extra={"ctx": {"proposal": row["id"],
+                                                                       "why": str(e)}})
 
 
 def reflect_job() -> None:

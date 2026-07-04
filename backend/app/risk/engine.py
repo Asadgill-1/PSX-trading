@@ -40,6 +40,9 @@ def _event(conn: sqlite3.Connection, kind: str, detail: str) -> None:
     )
     conn.commit()
     log.warning("risk event", extra={"ctx": {"kind": kind, "detail": detail}})
+    if kind in ("circuit_breaker", "day_halt"):  # owner must know immediately (spec §2)
+        from .. import alerts
+        alerts.notify_risk_event(kind, detail)
 
 
 # ---------- valuation ----------

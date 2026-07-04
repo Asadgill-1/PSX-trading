@@ -209,11 +209,14 @@ def check_stops(conn: sqlite3.Connection) -> list[int]:
         except ExecutionError as e:
             log.error("stop-loss sell failed", extra={"ctx": {"symbol": pos["symbol"], "err": str(e)}})
             continue
+        detail = (f"Stop-loss triggered: sold {pos['qty']} {pos['symbol']} at Rs {lp[0]:.2f} "
+                  f"(stop was Rs {pos['stop_loss']:.2f}) to cap the loss.")
         conn.execute(
             "INSERT INTO risk_events(kind, detail, created_at) VALUES ('stop_loss', ?, ?)",
-            (f"Stop-loss triggered: sold {pos['qty']} {pos['symbol']} at Rs {lp[0]:.2f} "
-             f"(stop was Rs {pos['stop_loss']:.2f}) to cap the loss.", db.utcnow()),
+            (detail, db.utcnow()),
         )
+        from .. import alerts
+        alerts.notify_risk_event("stop_loss", detail)
         trades.append(tid)
     conn.commit()
     return trades

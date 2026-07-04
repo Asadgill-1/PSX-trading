@@ -18,7 +18,8 @@ async def lifespan(_app: FastAPI):
     conn = db.connect()
     db.init_db(conn)
     conn.close()
-    from . import scheduler
+    from . import alerts, scheduler
+    scheduler.on_scan = alerts.notify_proposals
     sched = scheduler.start()
     log.info("startup complete", extra={"ctx": {"mock_agents": config.MOCK_AGENTS}})
     yield
@@ -72,3 +73,8 @@ def health():
 @app.get("/api/me", dependencies=[Depends(auth.require_owner)])
 def me():
     return {"user": "owner"}
+
+
+from .api import router as api_router  # noqa: E402
+
+app.include_router(api_router)
