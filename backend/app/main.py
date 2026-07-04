@@ -18,8 +18,11 @@ async def lifespan(_app: FastAPI):
     conn = db.connect()
     db.init_db(conn)
     conn.close()
+    from . import scheduler
+    sched = scheduler.start()
     log.info("startup complete", extra={"ctx": {"mock_agents": config.MOCK_AGENTS}})
     yield
+    sched.shutdown(wait=False)
 
 
 app = FastAPI(title="PSX Co-Pilot", docs_url=None, redoc_url=None, lifespan=lifespan)
