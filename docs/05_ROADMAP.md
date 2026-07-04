@@ -16,8 +16,8 @@ Status keys: TODO | DOING | DONE | BLOCKED
 | 8 | Memory: lessons store, journal, nightly reflection, strategy weights | DONE | reflection run writes lesson + adjusts weight |
 | 9 | Dashboard (React+Vite+Tailwind, frontend-design skill) | DONE | all 7 dashboard elements visible with real data |
 | 10 | Strategy modules (researched, cited) | DONE | each module named + source cited in code |
-| 11 | Dockerfile + compose + README + deploy docs | TODO | compose builds; README complete |
-| 12 | End-to-end demo vs Definition of done | TODO | full walkthrough, evidence per claim |
+| 11 | Dockerfile + compose + README + deploy docs | DONE | compose builds; README complete |
+| 12 | End-to-end demo vs Definition of done | DONE | full walkthrough, evidence per claim |
 
 ## Phase 2 (NOT built until owner asks)
 - Real-broker execution adapter only.
@@ -31,7 +31,7 @@ Status keys: TODO | DOING | DONE | BLOCKED
   kasb.com (KTrade), akdsl.com.
 
 ## Next up
-Milestone 11: Docker + README + deploy docs.
+Phase 1 COMPLETE. Owner: set real password, run during market hours, review paper results. Phase 2 only on owner request.
 
 ## Backlog / nice-to-have
 - VPS migration guide execution

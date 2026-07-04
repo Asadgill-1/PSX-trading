@@ -15,6 +15,7 @@ Every execution re-runs the risk layer at fill time. No code path skips it.
 """
 import logging
 import sqlite3
+import threading
 from datetime import datetime, timedelta
 
 from .. import db
@@ -55,12 +56,25 @@ class ExecutionError(Exception):
     """Plain-English refusal; shown to the owner as-is."""
 
 
+# Serializes fills: the approve endpoint and the scheduler tick run in the same
+# process and could otherwise both fill one approved proposal (double cash
+# deduction). Lock + status re-read inside = exactly-once.
+# ponytail: process-level lock — single uvicorn worker by design (README);
+# move the claim into an UPDATE...WHERE status='approved' if workers ever >1.
+_exec_lock = threading.Lock()
+
+
 def execute_approved(conn: sqlite3.Connection, proposal_id: int) -> int:
     """Execute an owner-approved proposal. Returns trade id.
 
     Hard rule: caller must be the approval flow — this function double-checks
     an 'approve' decision row exists for this exact proposal (spec §4).
     """
+    with _exec_lock:
+        return _execute_approved_locked(conn, proposal_id)
+
+
+def _execute_approved_locked(conn: sqlite3.Connection, proposal_id: int) -> int:
     prop = conn.execute("SELECT * FROM proposals WHERE id=?", (proposal_id,)).fetchone()
     if prop is None:
         raise ExecutionError("That proposal does not exist.")
@@ -95,10 +109,17 @@ def execute_approved(conn: sqlite3.Connection, proposal_id: int) -> int:
         conn.commit()
         raise ExecutionError("The safety layer rejected this trade: " + " ".join(verdict.reasons))
 
-    if prop["side"] == "buy":
-        trade_id = _fill_buy(conn, prop, price, verdict.stop_loss, sector)
-    else:
-        trade_id = _fill_sell(conn, prop["symbol"], prop["qty"], price, proposal_id)
+    try:
+        if prop["side"] == "buy":
+            trade_id = _fill_buy(conn, prop, price, verdict.stop_loss, sector)
+        else:
+            trade_id = _fill_sell(conn, prop["symbol"], prop["qty"], price, proposal_id)
+    except ExecutionError:
+        # fill-time refusal (e.g. commission tipped the cash over): kill the
+        # proposal, or the scheduler would retry it forever as a zombie
+        conn.execute("UPDATE proposals SET status='risk_rejected' WHERE id=?", (proposal_id,))
+        conn.commit()
+        raise
     conn.execute("UPDATE proposals SET status='executed' WHERE id=?", (proposal_id,))
     conn.commit()
     return trade_id
@@ -198,12 +219,19 @@ def settle_due(conn: sqlite3.Connection) -> float:
 def check_stops(conn: sqlite3.Connection) -> list[int]:
     """Auto-sell positions that breached their stop-loss. This is the risk layer's
     automatic protection (spec §2) — the one sale that needs no fresh approval,
-    because the stop was part of the approved trade. Returns trade ids."""
+    because the stop was part of the approved trade. Returns trade ids.
+
+    Deliberately NOT gated by validate_proposal (review 2026-07-05): a tripped
+    circuit breaker or day halt blocks NEW risk, it must never block the exit
+    that caps a loss. Sell-side invariants (own the shares, qty>0) hold by
+    construction here; _fill_sell re-checks ownership anyway."""
     if not is_market_open():
         return []
     trades = []
     for pos in risk.positions_below_stop(conn):
         lp = risk.latest_price(conn, pos["symbol"])
+        if lp is None:
+            continue  # no quote right now — next tick retries
         try:
             tid = _fill_sell(conn, pos["symbol"], pos["qty"], lp[0], None)
         except ExecutionError as e:

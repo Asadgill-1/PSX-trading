@@ -136,6 +136,58 @@ def test_no_price_data_refuses(conn):
         paper.execute_approved(conn, pid)
 
 
+def test_no_double_execution_race(conn):
+    """Regression (review 2026-07-05): approve endpoint + scheduler tick must
+    not both fill one approved proposal. Exactly one trade, one cash deduction."""
+    import threading
+
+    put_quote(conn, "LUCK", 480.0, "0804")
+    pid = make_approved(conn, qty=100)
+    db_file = conn.execute("PRAGMA database_list").fetchone()["file"]
+    results, errors, crashes = [], [], []
+
+    def worker():
+        # each thread gets its own connection, like api vs scheduler
+        c = db.connect(db_file)
+        try:
+            results.append(paper.execute_approved(c, pid))
+        except paper.ExecutionError as e:
+            errors.append(str(e))
+        except Exception as e:  # surface crashes instead of dying silently
+            crashes.append(repr(e))
+        finally:
+            c.close()
+
+    threads = [threading.Thread(target=worker) for _ in range(2)]
+    for t in threads: t.start()
+    for t in threads: t.join()
+
+    assert not crashes, crashes
+    assert len(results) == 1 and len(errors) == 1          # one fill, one refusal
+    assert conn.execute("SELECT COUNT(*) c FROM trades").fetchone()["c"] == 1
+    cash = conn.execute("SELECT cash FROM portfolio WHERE id=1").fetchone()["cash"]
+    assert cash == 1_000_000 - 48_000 - 72.0               # deducted exactly once
+
+
+def test_commission_tip_over_kills_proposal_no_zombie(conn):
+    """Regression (review 2026-07-05): when commission tips total over cash, the
+    proposal must die (risk_rejected), not stay approved retrying forever."""
+    # sector-less quote: sector cap does not apply, the fee is the only tipper
+    conn.execute(
+        "INSERT INTO quotes(symbol, sector, price, fetched_at, source) VALUES (?,?,?,?,?)",
+        ("X", None, 100.0, db.utcnow(), "test"))
+    pid = make_approved(conn, symbol="X", qty=100, price=100.0)
+    # leave exactly the share cost, nothing for the Rs 15 commission
+    conn.execute("UPDATE portfolio SET cash=10000 WHERE id=1")
+    # loosen position cap so the risk gate passes and the fee is the tipper
+    db.set_setting(conn, "risk.max_position_pct", "100.0")
+    conn.commit()
+    with pytest.raises(paper.ExecutionError, match="commission"):
+        paper.execute_approved(conn, pid)
+    status = conn.execute("SELECT status FROM proposals WHERE id=?", (pid,)).fetchone()["status"]
+    assert status == "risk_rejected"                        # zombie prevented
+
+
 # ---------- sell flow + CGT + T+2 ----------
 
 def sell_via_engine(conn, symbol, qty, price):

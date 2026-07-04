@@ -5,6 +5,16 @@ Format: date — who — what changed — what's next — blockers.
 
 ---
 
+## 2026-07-05 — PHASE 1 COMPLETE (M10-M12 + final review)
+- M10: 6 named strategy modules, source-cited in code (AKD Pakistan Strategy CY2025, Topline research practice, Profit FY26 heavyweights coverage, PSX investor guides); seeded weights, menu injected into Scout prompt.
+- Broker research documented in roadmap: no public retail trading APIs in PK (KiTS-only); Phase 2 recommendation = semi-automatic order handoff.
+- M11: single-container Dockerfile (node build + py runtime), compose (data volume, lessons mount), FastAPI serves dashboard at / — verified single-origin. README complete (bare + Docker + tunnels + env table + cost estimate). Docker build itself NOT tested (no Docker on dev PC) — first `docker compose up` happens on the VPS.
+- Final fresh-context review (paper engine + pipeline) found 4 issues; fixed 3 real ones: double-execution race (process lock + status re-read, regression test with racing threads), commission-tip zombie proposals (now risk_rejected at fill failure), lp-None guard in check_stops. 4th (stop-loss sells skip validate_proposal) kept AS DESIGNED and documented in code: circuit breaker/day halt must never block a loss-capping exit.
+- E2E demo (backend/demo_e2e.py): all 7 Definition-of-done checks pass against LIVE PSX data. 91 tests green.
+- Owner TODOs: change temp password (`python -m app.cli set-password`, temp is changeme-owner-123), optionally add ANTHROPIC_API_KEY + Telegram creds to backend/.env, run during market hours (Mon-Fri) to see real scans.
+- Next session: watch live market-hours run; VPS migration when owner ready.
+- Blockers: none.
+
 ## 2026-07-05 — Milestones 6-9 done (agents, approval+alerts, memory, dashboard)
 - M6 agents: Scout/Devil/Judge fresh-context JSON calls, mock mode, parallel debates, hallucination guard, dedup, sizing arithmetic under cap.
 - M7 approval gate API (decisions audit rows, deferred fills), Telegram alerts (stdlib, degrade-to-log), risk settings UI endpoints with confirm+bounds.
