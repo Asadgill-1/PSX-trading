@@ -233,11 +233,20 @@ def test_rejections_logged_to_risk_events(conn):
 # ---------- agents cannot import risk internals to mutate ----------
 
 def test_agents_module_never_imports_risk():
-    """Static guarantee: nothing under app/agents imports the risk engine."""
+    """Static guarantee (spec §2): nothing under app/agents imports the risk
+    engine or mutates risk settings. Agents talk in prose about 'risk' freely —
+    they just can't touch the module or its settings keys."""
+    import re
     from pathlib import Path
     agents_dir = Path(__file__).parent.parent / "app" / "agents"
     if not agents_dir.exists():
         return  # M6 not built yet — test still meaningful later
+    forbidden = [
+        re.compile(r"from\s+\S*risk\S*\s+import"),   # from ..risk import / from app.risk...
+        re.compile(r"import\s+\S*\brisk\b"),          # import app.risk
+        re.compile(r"set_setting\([^)]*['\"]risk\."), # writing risk.* settings
+    ]
     for py in agents_dir.rglob("*.py"):
         text = py.read_text(encoding="utf-8")
-        assert "risk" not in text.replace("risky", ""), f"{py} references risk layer"
+        for pat in forbidden:
+            assert not pat.search(text), f"{py} touches the risk layer: {pat.pattern}"
